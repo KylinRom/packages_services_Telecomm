@@ -57,6 +57,10 @@ import android.text.TextUtils;
 
 import java.util.Locale;
 
+import com.kylin.cloud.phone.PhoneUtil;
+import android.kylin.utils.KylinUtils;
+
+
 // TODO: Needed for move to system service: import com.android.internal.R;
 
 /**
@@ -270,14 +274,19 @@ public class MissedCallNotifierImpl extends CallsManagerListenerBase implements 
             }
         }
 
+        CharSequence location = "";
+        if (KylinUtils.isSupportLanguage(true)) {
+            location = PhoneUtil.getPhoneUtil(mContext).getLocalNumberInfo(call.getNumber());
+        }
+
         if (!TextUtils.isEmpty(name) && TextUtils.isGraphic(name)) {
-            return name;
+            return !TextUtils.isEmpty(location) ? name + " " + location : name;
         } else if (!TextUtils.isEmpty(handle)) {
             // A handle should always be displayed LTR using {@link BidiFormatter} regardless of the
             // content of the rest of the notification.
             // TODO: Does this apply to SIP addresses?
             BidiFormatter bidiFormatter = BidiFormatter.getInstance();
-            return bidiFormatter.unicodeWrap(handle, TextDirectionHeuristics.LTR);
+            return !TextUtils.isEmpty(location) ? bidiFormatter.unicodeWrap(handle, TextDirectionHeuristics.LTR) + " " + location : bidiFormatter.unicodeWrap(handle, TextDirectionHeuristics.LTR);
         } else {
             // Use "unknown" if the call is unidentifiable.
             return mContext.getString(R.string.unknown);
